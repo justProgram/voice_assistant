@@ -52,6 +52,27 @@ def say_ip():
     ip_address = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True)
     aiy.audio.say('My IP address is %s' % ip_address.decode('utf-8'))
 
+def volume(change):
+    """Changes the volume and says the new level."""
+    GET_VOLUME = r'amixer get Master | grep "Front Left:" | sed "s/.*\[\([0-9]\+\)%\].*/\1/"'
+    SET_VOLUME = 'amixer -q set Master %d%%'
+
+    res = subprocess.check_output(GET_VOLUME, shell=True).strip()
+    try:
+       logging.info("volume: %s", res)
+       vol = int(res) + change
+       vol = max(0, min(100, vol))
+       subprocess.call(SET_VOLUME % vol, shell=True)
+       aiy.audio.say('Volume at %d %%.' % vol)
+    except (ValueError, subprocess.CalledProcessError):
+       logging.exception("Error using amixer to adjust volume.")
+
+
+def volume_up():
+    volume(10)
+
+def volume_down():
+    volume(-10)
 
 def process_event(assistant, event):
     status_ui = aiy.voicehat.get_status_ui()
@@ -75,6 +96,12 @@ def process_event(assistant, event):
         elif text == 'ip address':
             assistant.stop_conversation()
             say_ip()
+        elif text == 'volume up':
+            assistant.stop_conversation()
+            volume_up()
+        elif text == 'volume down':
+            assistant.stop_conversation()
+            volume_down()
 
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')

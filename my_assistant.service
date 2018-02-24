@@ -2,7 +2,7 @@
 Description=My Voice Assistant
 
 [Service]
-ExecStart=/bin/bash -c '/home/pi/AIY-projects-python/env/bin/python3 -u ../samarth/my_assistant.py'
+ExecStart=/bin/bash -c '/home/pi/AIY-projects-python/env/bin/python3 -u my_assistant.py'
 WorkingDirectory=/home/pi/AIY-projects-python
 Restart=always
 User=pi

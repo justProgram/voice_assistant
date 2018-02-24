@@ -3,3 +3,11 @@ AIY Project Experiments
 
 added IP Address, sleep, reboot from
 https://ktinkerer.co.uk/list-mods-raspberry-pi-aiy-project/
+
+To run, my assistant as a service the my_assistant.service file needs to be copied in /lib/systemd/system folder and then the service needs to be enabled using the following command
+sudo systemctl enable my_assistant
+sudo service my_assistant start
+
+The my_assistant.py needs to be symlinked to the AIY-projects-python folder
+To do this change directory (cd;cd AIY-projects-python) to AIY-projects-python and issue the following command
+ln -s <path to my_assistant.py> .
