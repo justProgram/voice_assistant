@@ -27,6 +27,8 @@ It is available for Raspberry Pi 2/3 only; Pi Zero is not supported.
 
 import logging
 import sys
+import subprocess
+
 
 import aiy.assistant.auth_helpers
 import aiy.voicehat
@@ -38,8 +40,20 @@ logging.basicConfig(
     format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
 )
 
+def power_off_pi():
+    aiy.audio.say('Good bye!')
+    subprocess.call('sudo shutdown now', shell=True)
 
-def process_event(event):
+def reboot_pi():
+    aiy.audio.say('See you in a bit!')
+    subprocess.call('sudo reboot', shell=True)
+    
+def say_ip():
+    ip_address = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True)
+    aiy.audio.say('My IP address is %s' % ip_address.decode('utf-8'))
+
+
+def process_event(assistant, event):
     status_ui = aiy.voicehat.get_status_ui()
     if event.type == EventType.ON_START_FINISHED:
         status_ui.status('ready')
@@ -48,6 +62,19 @@ def process_event(event):
 
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
         status_ui.status('listening')
+
+    elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
+        print('You said:', event.args['text'])
+        text = event.args['text'].lower()
+        if text == 'sleep':
+            assistant.stop_conversation()
+            power_off_pi()
+        elif text == 'reboot':
+            assistant.stop_conversation()
+            reboot_pi()
+        elif text == 'ip address':
+            assistant.stop_conversation()
+            say_ip()
 
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         status_ui.status('thinking')
@@ -63,7 +90,7 @@ def main():
     credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
     with Assistant(credentials) as assistant:
         for event in assistant.start():
-            process_event(event)
+            process_event(assistant, event)
 
 
 if __name__ == '__main__':
